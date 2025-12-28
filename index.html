@@ -2,51 +2,73 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Enerji Oyunu</title>
+
 <style>
-  body { margin: 0; background: #111; color: white; text-align: center; }
-  canvas { background: #222; display: block; margin: auto; }
+body {
+  margin: 0;
+  background: #111;
+  color: white;
+  text-align: center;
+  font-family: Arial;
+}
+canvas {
+  background: #222;
+  display: block;
+  margin: auto;
+  touch-action: none;
+}
 </style>
 </head>
+
 <body>
 
-<h2>🎮 Enerjinin Korunumu Oyunu</h2>
-<p>Topu çek – bırak – enerjiyi izle</p>
+<h2>🎮 Enerjinin Korunumu</h2>
+<p>Topu çek → bırak</p>
 
-<canvas id="game" width="360" height="500"></canvas>
+<canvas id="game"></canvas>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const g = 0.4;
-const L = 180;
-let angle = Math.PI / 4;
+// 📱 iPhone ekranına göre boyut
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight * 0.75;
+
+// 🔧 Fizik ayarları (YAVAŞ + DENGELİ)
+const g = 0.015;
+const L = canvas.height * 0.45;
+let angle = Math.PI / 6;
 let speed = 0;
 let dragging = false;
 
-const origin = { x: 180, y: 100 };
+const origin = {
+  x: canvas.width / 2,
+  y: canvas.height * 0.15
+};
 
-canvas.addEventListener("touchstart", e => {
-  dragging = true;
-});
+// 👆 Dokunma kontrolleri
+canvas.addEventListener("touchstart", () => dragging = true);
 
 canvas.addEventListener("touchmove", e => {
   if (!dragging) return;
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  const x = touch.clientX - rect.left - origin.x;
-  const y = touch.clientY - rect.top - origin.y;
+  const t = e.touches[0];
+  const r = canvas.getBoundingClientRect();
+  const x = t.clientX - r.left - origin.x;
+  const y = t.clientY - r.top - origin.y;
   angle = Math.atan2(x, y);
   speed = 0;
 });
 
 canvas.addEventListener("touchend", () => dragging = false);
 
+// 🔄 Oyun döngüsü
 function update() {
   if (!dragging) {
     speed += -g * Math.sin(angle);
-    speed *= 0.999; // neredeyse sürtünmesiz
+    speed *= 0.995; // aşırı hızlanmayı önler
     angle += speed;
   }
 }
@@ -62,21 +84,24 @@ function draw() {
   ctx.moveTo(origin.x, origin.y);
   ctx.lineTo(x, y);
   ctx.strokeStyle = "white";
+  ctx.lineWidth = 2;
   ctx.stroke();
 
   // top
   ctx.beginPath();
-  ctx.arc(x, y, 15, 0, Math.PI * 2);
+  ctx.arc(x, y, 22, 0, Math.PI * 2);
   ctx.fillStyle = "orange";
   ctx.fill();
 
-  // Enerji hesapları
+  // Enerji
   const PE = (1 - Math.cos(angle)) * 100;
-  const KE = speed * speed * 500;
+  const KE = speed * speed * 800;
 
-  ctx.fillText("Potansiyel: " + PE.toFixed(1), 10, 20);
-  ctx.fillText("Kinetik: " + KE.toFixed(1), 10, 40);
-  ctx.fillText("Toplam ≈ SABİT", 10, 60);
+  ctx.fillStyle = "white";
+  ctx.font = "16px Arial";
+  ctx.fillText("Potansiyel: " + PE.toFixed(1), 10, 25);
+  ctx.fillText("Kinetik: " + KE.toFixed(1), 10, 45);
+  ctx.fillText("Toplam Enerji ≈ Sabit", 10, 65);
 }
 
 function loop() {
