@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Enerji Oyunu</title>
+<style>
+  body { margin: 0; background: #111; color: white; text-align: center; }
+  canvas { background: #222; display: block; margin: auto; }
+</style>
+</head>
+<body>
+
+<h2>🎮 Enerjinin Korunumu Oyunu</h2>
+<p>Topu çek – bırak – enerjiyi izle</p>
+
+<canvas id="game" width="360" height="500"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const g = 0.4;
+const L = 180;
+let angle = Math.PI / 4;
+let speed = 0;
+let dragging = false;
+
+const origin = { x: 180, y: 100 };
+
+canvas.addEventListener("touchstart", e => {
+  dragging = true;
+});
+
+canvas.addEventListener("touchmove", e => {
+  if (!dragging) return;
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left - origin.x;
+  const y = touch.clientY - rect.top - origin.y;
+  angle = Math.atan2(x, y);
+  speed = 0;
+});
+
+canvas.addEventListener("touchend", () => dragging = false);
+
+function update() {
+  if (!dragging) {
+    speed += -g * Math.sin(angle);
+    speed *= 0.999; // neredeyse sürtünmesiz
+    angle += speed;
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const x = origin.x + L * Math.sin(angle);
+  const y = origin.y + L * Math.cos(angle);
+
+  // ip
+  ctx.beginPath();
+  ctx.moveTo(origin.x, origin.y);
+  ctx.lineTo(x, y);
+  ctx.strokeStyle = "white";
+  ctx.stroke();
+
+  // top
+  ctx.beginPath();
+  ctx.arc(x, y, 15, 0, Math.PI * 2);
+  ctx.fillStyle = "orange";
+  ctx.fill();
+
+  // Enerji hesapları
+  const PE = (1 - Math.cos(angle)) * 100;
+  const KE = speed * speed * 500;
+
+  ctx.fillText("Potansiyel: " + PE.toFixed(1), 10, 20);
+  ctx.fillText("Kinetik: " + KE.toFixed(1), 10, 40);
+  ctx.fillText("Toplam ≈ SABİT", 10, 60);
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
