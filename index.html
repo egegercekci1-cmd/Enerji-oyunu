@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Enerji Oyunu</title>
 
 <style>
@@ -15,31 +15,51 @@ body {
 }
 canvas {
   display: block;
-  margin: auto;
   background: #222;
   touch-action: none;
+}
+button {
+  font-size: 16px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+}
+#ui {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🎮 Enerjinin Korunumu</h2>
-<p>Topu çek → bırak</p>
-
 <canvas id="game"></canvas>
+
+<div id="ui">
+  <button id="frictionBtn">🧲 Sürtünme: KAPALI</button>
+  <button id="fullscreenBtn">⛶ Tam Ekran</button>
+</div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// 📱 EKRAN
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight * 0.75;
+// 📱 TAM EKRAN CANVAS
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
 
 // ⚙️ FİZİK
 const g = 0.015;
-const L = canvas.height * 0.45;
+let frictionOn = false;
+let friction = 0.995;
 
 let angle = Math.PI / 6;
 let speed = 0;
@@ -50,10 +70,16 @@ const TOTAL = 100;
 let shownPot = 50;
 let shownKin = 50;
 
-const origin = {
-  x: canvas.width / 2,
-  y: canvas.height * 0.15
-};
+// 📍 MERKEZ
+let L, origin;
+function updateOrigin() {
+  L = canvas.height * 0.45;
+  origin = {
+    x: canvas.width / 2,
+    y: canvas.height * 0.18
+  };
+}
+updateOrigin();
 
 // 👆 DOKUNMA
 canvas.addEventListener("touchstart", () => dragging = true);
@@ -68,11 +94,29 @@ canvas.addEventListener("touchmove", e => {
 });
 canvas.addEventListener("touchend", () => dragging = false);
 
+// 🧲 SÜRTÜNME BUTONU
+const frictionBtn = document.getElementById("frictionBtn");
+frictionBtn.onclick = () => {
+  frictionOn = !frictionOn;
+  frictionBtn.textContent = frictionOn
+    ? "🧲 Sürtünme: AÇIK"
+    : "🧲 Sürtünme: KAPALI";
+};
+
+// ⛶ TAM EKRAN BUTONU
+document.getElementById("fullscreenBtn").onclick = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+};
+
 // 🔄 GÜNCELLEME
 function update() {
   if (!dragging) {
     speed += -g * Math.sin(angle);
-    speed *= 0.995;
+    speed *= frictionOn ? friction : 1;
     angle += speed;
   }
 }
@@ -124,12 +168,12 @@ function draw() {
   shownKin += (realKin - shownKin) * smooth;
 
   // barlar
-  drawBar(20, canvas.height - 90, shownPot, "#3498db", "Potansiyel");
-  drawBar(20, canvas.height - 55, shownKin, "#e74c3c", "Kinetik");
+  drawBar(20, canvas.height - 100, shownPot, "#3498db", "Potansiyel");
+  drawBar(20, canvas.height - 65, shownKin, "#e74c3c", "Kinetik");
 
   ctx.fillStyle = "white";
   ctx.font = "16px Arial";
-  ctx.fillText("Toplam Enerji: 100", 20, canvas.height - 115);
+  ctx.fillText("Toplam Enerji: 100", 20, canvas.height - 130);
 }
 
 // ▶️ OYUN DÖNGÜSÜ
