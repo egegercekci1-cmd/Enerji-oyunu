@@ -9,9 +9,9 @@
 body {
   margin: 0;
   background: #111;
-  color: white;
-  font-family: Arial;
   overflow: hidden;
+  font-family: Arial;
+  color: white;
 }
 
 canvas {
@@ -26,8 +26,8 @@ canvas {
   top: 8px;
   left: 8px;
   font-size: 12px;
-  color: rgba(255,255,255,0.7);
-  z-index: 20;
+  opacity: 0.7;
+  z-index: 10;
   pointer-events: none;
 }
 
@@ -48,15 +48,15 @@ canvas {
   border: 1px solid white;
   border-radius: 10px;
   padding: 10px 14px;
-  font-size: 15px;
+  font-size: 14px;
 }
 #frictionBtn { left: 14px; }
 #fullscreenBtn { right: 14px; }
 
-/* DURDUR BUTONU */
+/* DURDUR */
 #pauseBtn {
   position: fixed;
-  top: 36px;
+  top: 34px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0,0,0,0.6);
@@ -64,7 +64,7 @@ canvas {
   border: 1px solid white;
   border-radius: 10px;
   padding: 8px 14px;
-  font-size: 15px;
+  font-size: 14px;
   z-index: 10;
 }
 </style>
@@ -91,17 +91,16 @@ const ctx = canvas.getContext("2d");
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  updateOrigin();
 }
-window.addEventListener("resize", resize);
 resize();
+window.addEventListener("resize", resize);
 
 /* FİZİK */
 const g = 0.015;
 let frictionOn = false;
 const friction = 0.995;
 
-let angle = Math.PI / 6;
+let angle = Math.PI / 5;
 let speed = 0;
 let dragging = false;
 let paused = false;
@@ -112,14 +111,11 @@ let shownPot = 50;
 let shownKin = 50;
 
 /* MERKEZ */
-let L, origin;
-function updateOrigin() {
-  L = canvas.height * 0.45;
-  origin = {
-    x: canvas.width / 2,
-    y: canvas.height * 0.18
-  };
-}
+let L = canvas.height * 0.45;
+let origin = {
+  x: canvas.width / 2,
+  y: canvas.height * 0.18
+};
 
 /* DOKUNMA */
 canvas.addEventListener("touchstart", () => dragging = true);
@@ -135,12 +131,10 @@ canvas.addEventListener("touchmove", e => {
 canvas.addEventListener("touchend", () => dragging = false);
 
 /* BUTONLAR */
-const frictionBtn = document.getElementById("frictionBtn");
-frictionBtn.onclick = () => {
+document.getElementById("frictionBtn").onclick = () => {
   frictionOn = !frictionOn;
-  frictionBtn.textContent = frictionOn
-    ? "🧲 Sürtünme: AÇIK"
-    : "🧲 Sürtünme: KAPALI";
+  document.getElementById("frictionBtn").textContent =
+    frictionOn ? "🧲 Sürtünme: AÇIK" : "🧲 Sürtünme: KAPALI";
 };
 
 document.getElementById("fullscreenBtn").onclick = () => {
@@ -151,27 +145,16 @@ document.getElementById("fullscreenBtn").onclick = () => {
   }
 };
 
-const pauseBtn = document.getElementById("pauseBtn");
-pauseBtn.onclick = () => {
+document.getElementById("pauseBtn").onclick = () => {
   paused = !paused;
-  pauseBtn.textContent = paused ? "▶️ Devam" : "⏸️ Durdur";
+  document.getElementById("pauseBtn").textContent =
+    paused ? "▶️ Devam" : "⏸️ Durdur";
 };
-
-/* GÜNCELLEME */
-function update() {
-  if (paused) return;
-
-  if (!dragging) {
-    speed += -g * Math.sin(angle);
-    speed *= frictionOn ? friction : 1;
-    angle += speed;
-  }
-}
 
 /* ENERJİ BAR */
 function drawBar(x, y, value, color, label) {
-  const w = 220;
-  const h = 18;
+  const w = 200;
+  const h = 16;
 
   ctx.strokeStyle = "white";
   ctx.strokeRect(x, y, w, h);
@@ -180,11 +163,11 @@ function drawBar(x, y, value, color, label) {
   ctx.fillRect(x, y, w * (value / TOTAL), h);
 
   ctx.fillStyle = "white";
-  ctx.font = "14px Arial";
+  ctx.font = "13px Arial";
   ctx.fillText(label + ": " + value.toFixed(0), x, y - 4);
 }
 
-/* ÇİZİM */
+/* ANA ÇİZİM */
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -199,13 +182,13 @@ function draw() {
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // top
+  // TOP (KESİN GÖRÜNÜR)
   ctx.beginPath();
   ctx.arc(x, y, 22, 0, Math.PI * 2);
   ctx.fillStyle = "orange";
   ctx.fill();
 
-  // enerji hesap
+  // ENERJİ
   let realPot = (1 - Math.cos(angle)) * TOTAL;
   realPot = Math.min(realPot, TOTAL);
   let realKin = TOTAL - realPot;
@@ -214,15 +197,26 @@ function draw() {
   shownPot += (realPot - shownPot) * smooth;
   shownKin += (realKin - shownKin) * smooth;
 
-  drawBar(20, canvas.height - 100, shownPot, "#3498db", "Potansiyel");
-  drawBar(20, canvas.height - 65, shownKin, "#e74c3c", "Kinetik");
+  // BARLAR (KESİN ALTTA)
+  drawBar(20, canvas.height - 90, shownPot, "#3498db", "Potansiyel");
+  drawBar(20, canvas.height - 55, shownKin, "#e74c3c", "Kinetik");
 
   ctx.fillStyle = "white";
-  ctx.font = "16px Arial";
-  ctx.fillText("Toplam Enerji: 100", 20, canvas.height - 130);
+  ctx.font = "15px Arial";
+  ctx.fillText("Toplam Enerji: 100", 20, canvas.height - 115);
 }
 
-/* OYUN DÖNGÜSÜ */
+/* DÖNGÜ */
+function update() {
+  if (paused) return;
+
+  if (!dragging) {
+    speed += -g * Math.sin(angle);
+    speed *= frictionOn ? friction : 1;
+    angle += speed;
+  }
+}
+
 function loop() {
   update();
   draw();
