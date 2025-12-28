@@ -1,10 +1,43 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enerji Oyunu</title>
+
+<style>
+body {
+  margin: 0;
+  background: #111;
+  color: white;
+  text-align: center;
+  font-family: Arial;
+}
+canvas {
+  display: block;
+  margin: auto;
+  background: #222;
+  touch-action: none;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🎮 Enerjinin Korunumu</h2>
+<p>Topu çek → bırak</p>
+
+<canvas id="game"></canvas>
+
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+// 📱 EKRAN
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight * 0.75;
 
+// ⚙️ FİZİK
 const g = 0.015;
 const L = canvas.height * 0.45;
 
@@ -12,7 +45,7 @@ let angle = Math.PI / 6;
 let speed = 0;
 let dragging = false;
 
-// 🔢 Enerji ayarları
+// 🔢 ENERJİ
 const TOTAL = 100;
 let shownPot = 50;
 let shownKin = 50;
@@ -22,9 +55,8 @@ const origin = {
   y: canvas.height * 0.15
 };
 
-// 👆 Dokunma
+// 👆 DOKUNMA
 canvas.addEventListener("touchstart", () => dragging = true);
-
 canvas.addEventListener("touchmove", e => {
   if (!dragging) return;
   const t = e.touches[0];
@@ -34,9 +66,9 @@ canvas.addEventListener("touchmove", e => {
   angle = Math.atan2(x, y);
   speed = 0;
 });
-
 canvas.addEventListener("touchend", () => dragging = false);
 
+// 🔄 GÜNCELLEME
 function update() {
   if (!dragging) {
     speed += -g * Math.sin(angle);
@@ -45,21 +77,23 @@ function update() {
   }
 }
 
+// 📊 BAR
 function drawBar(x, y, value, color, label) {
-  const width = 200;
-  const height = 18;
+  const w = 220;
+  const h = 18;
 
   ctx.strokeStyle = "white";
-  ctx.strokeRect(x, y, width, height);
+  ctx.strokeRect(x, y, w, h);
 
   ctx.fillStyle = color;
-  ctx.fillRect(x, y, width * (value / TOTAL), height);
+  ctx.fillRect(x, y, w * (value / TOTAL), h);
 
   ctx.fillStyle = "white";
   ctx.font = "14px Arial";
   ctx.fillText(label + ": " + value.toFixed(0), x, y - 4);
 }
 
+// 🎨 ÇİZİM
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -80,30 +114,32 @@ function draw() {
   ctx.fillStyle = "orange";
   ctx.fill();
 
-  // 🔢 Gerçek enerji
+  // enerji hesap
   let realPot = (1 - Math.cos(angle)) * TOTAL;
   realPot = Math.min(realPot, TOTAL);
   let realKin = TOTAL - realPot;
 
-  // 🧈 Yumuşatma
   const smooth = 0.05;
   shownPot += (realPot - shownPot) * smooth;
   shownKin += (realKin - shownKin) * smooth;
 
-  // 📊 Enerji barları
-  drawBar(20, canvas.height - 80, shownPot, "#3498db", "Potansiyel");
-  drawBar(20, canvas.height - 50, shownKin, "#e74c3c", "Kinetik");
+  // barlar
+  drawBar(20, canvas.height - 90, shownPot, "#3498db", "Potansiyel");
+  drawBar(20, canvas.height - 55, shownKin, "#e74c3c", "Kinetik");
 
   ctx.fillStyle = "white";
   ctx.font = "16px Arial";
-  ctx.fillText("Toplam Enerji: 100", 20, canvas.height - 110);
+  ctx.fillText("Toplam Enerji: 100", 20, canvas.height - 115);
 }
 
+// ▶️ OYUN DÖNGÜSÜ
 function loop() {
   update();
   draw();
   requestAnimationFrame(loop);
 }
-
 loop();
 </script>
+
+</body>
+</html>
