@@ -20,6 +20,17 @@ canvas {
   touch-action: none;
 }
 
+/* İMZA */
+#credit {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  z-index: 20;
+  pointer-events: none;
+}
+
 /* ALT BUTONLAR */
 #ui {
   position: fixed;
@@ -42,10 +53,10 @@ canvas {
 #frictionBtn { left: 14px; }
 #fullscreenBtn { right: 14px; }
 
-/* ÜST BUTON */
+/* DURDUR BUTONU */
 #pauseBtn {
   position: fixed;
-  top: 12px;
+  top: 36px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0,0,0,0.6);
@@ -60,6 +71,8 @@ canvas {
 </head>
 
 <body>
+
+<div id="credit">This game created by Ege Gerçekci</div>
 
 <canvas id="game"></canvas>
 
