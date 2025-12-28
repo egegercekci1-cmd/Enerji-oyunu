@@ -1,55 +1,28 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Enerji Oyunu</title>
-
-<style>
-body {
-  margin: 0;
-  background: #111;
-  color: white;
-  text-align: center;
-  font-family: Arial;
-}
-canvas {
-  background: #222;
-  display: block;
-  margin: auto;
-  touch-action: none;
-}
-</style>
-</head>
-
-<body>
-
-<h2>🎮 Enerjinin Korunumu</h2>
-<p>Topu çek → bırak</p>
-
-<canvas id="game"></canvas>
-
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// 📱 iPhone ekranına göre boyut
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight * 0.75;
 
-// 🔧 Fizik ayarları (YAVAŞ + DENGELİ)
 const g = 0.015;
 const L = canvas.height * 0.45;
+
 let angle = Math.PI / 6;
 let speed = 0;
 let dragging = false;
+
+// 🔢 Enerji ayarları
+const TOTAL = 100;
+let shownPot = 50;
+let shownKin = 50;
 
 const origin = {
   x: canvas.width / 2,
   y: canvas.height * 0.15
 };
 
-// 👆 Dokunma kontrolleri
+// 👆 Dokunma
 canvas.addEventListener("touchstart", () => dragging = true);
 
 canvas.addEventListener("touchmove", e => {
@@ -64,13 +37,27 @@ canvas.addEventListener("touchmove", e => {
 
 canvas.addEventListener("touchend", () => dragging = false);
 
-// 🔄 Oyun döngüsü
 function update() {
   if (!dragging) {
     speed += -g * Math.sin(angle);
-    speed *= 0.995; // aşırı hızlanmayı önler
+    speed *= 0.995;
     angle += speed;
   }
+}
+
+function drawBar(x, y, value, color, label) {
+  const width = 200;
+  const height = 18;
+
+  ctx.strokeStyle = "white";
+  ctx.strokeRect(x, y, width, height);
+
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, width * (value / TOTAL), height);
+
+  ctx.fillStyle = "white";
+  ctx.font = "14px Arial";
+  ctx.fillText(label + ": " + value.toFixed(0), x, y - 4);
 }
 
 function draw() {
@@ -93,15 +80,23 @@ function draw() {
   ctx.fillStyle = "orange";
   ctx.fill();
 
-  // Enerji
-  const PE = (1 - Math.cos(angle)) * 100;
-  const KE = speed * speed * 800;
+  // 🔢 Gerçek enerji
+  let realPot = (1 - Math.cos(angle)) * TOTAL;
+  realPot = Math.min(realPot, TOTAL);
+  let realKin = TOTAL - realPot;
+
+  // 🧈 Yumuşatma
+  const smooth = 0.05;
+  shownPot += (realPot - shownPot) * smooth;
+  shownKin += (realKin - shownKin) * smooth;
+
+  // 📊 Enerji barları
+  drawBar(20, canvas.height - 80, shownPot, "#3498db", "Potansiyel");
+  drawBar(20, canvas.height - 50, shownKin, "#e74c3c", "Kinetik");
 
   ctx.fillStyle = "white";
   ctx.font = "16px Arial";
-  ctx.fillText("Potansiyel: " + PE.toFixed(1), 10, 25);
-  ctx.fillText("Kinetik: " + KE.toFixed(1), 10, 45);
-  ctx.fillText("Toplam Enerji ≈ Sabit", 10, 65);
+  ctx.fillText("Toplam Enerji: 100", 20, canvas.height - 110);
 }
 
 function loop() {
@@ -112,6 +107,3 @@ function loop() {
 
 loop();
 </script>
-
-</body>
-</html>
